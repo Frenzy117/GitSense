@@ -105,8 +105,6 @@ This project demonstrates:
 - Full-stack AI engineering (backend + frontend)
 - Production-aware architectural decision making
 
-It is intended as a **portfolio-grade AI engineering project**, suitable for technical interviews and recruiter review.
-
 ---
 
 ## 🧪 Status
