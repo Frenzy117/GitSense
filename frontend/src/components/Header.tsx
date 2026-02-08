@@ -1,5 +1,5 @@
-import React from 'react';
-import { HeaderStat } from '../types';
+import React, { useState, useEffect } from 'react';
+import { HeaderStat, StatsType } from '../types';
 
 interface HeaderProps {
   stats: HeaderStat[];
@@ -8,10 +8,56 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  stats,
+  // stats,
   appName = 'GITSENSE',
   appSubtitle = 'SEMANTIC CODE INTELLIGENCE'
 }) => {
+
+  const [statsResult, setStatsResult] = useState<StatsType>({
+    vectorCount: 0,
+    dimension: 0,
+    metric: '',
+    vectorType: ''
+  });
+
+  const [displayStats, setDisplayStats] = useState<HeaderStat[]>([])
+
+  const getIndexStats = async () => {
+
+    try {
+      const response = await fetch('http://localhost:8000/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+
+      const data = await response.json();
+      
+      const results: StatsType = {
+        vectorCount: 0,
+        dimension: 0,
+        metric: '',
+        vectorType: '',
+        ...(data ?? {})
+      };
+      const stats: HeaderStat[] = [
+        { label: 'Vector Type', value: results.vectorType },
+        { label: 'Vector Count', value: String(results.vectorCount) },
+        { label: 'Dimension', value: String(results.dimension) },
+        { label: 'Metric', value: results.metric },
+      ];
+      setStatsResult(results);
+      setDisplayStats(stats);
+    } catch (error) {
+      console.error('Error processing query:', error);
+    }
+  };
+
+  useEffect(() => {
+    getIndexStats();
+  }, []);
+
   return (
     <header className="header">
       <div className="logo-section">
@@ -29,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="header-metrics">
-        {stats.map((stat, i) => (
+        {displayStats.map((stat, i) => (
           <div key={i} className="header-stat" style={{ animationDelay: `${i * 0.1}s` }}>
             <div className="stat-value">{stat.value}</div>
             <div className="stat-label">{stat.label}</div>

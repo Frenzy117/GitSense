@@ -8,8 +8,8 @@ interface DotMatrixCanvasProps {
 
 export const DotMatrixCanvas: React.FC<DotMatrixCanvasProps> = ({
   dotSpacing = 40,
-  dotRadius = 1,
-  opacity = 0.03
+  dotRadius = 1.5,
+  opacity = 0.12
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -30,7 +30,7 @@ export const DotMatrixCanvas: React.FC<DotMatrixCanvasProps> = ({
       ctx.fillStyle = '#ffffff';
       for (let x = 0; x < canvas.width; x += dotSpacing) {
         for (let y = 0; y < canvas.height; y += dotSpacing) {
-          const currentOpacity = opacity + Math.random() * 0.02;
+          const currentOpacity = opacity + Math.random() * 0.05;
           ctx.globalAlpha = currentOpacity;
           ctx.beginPath();
           ctx.arc(x, y, dotRadius, 0, Math.PI * 2);

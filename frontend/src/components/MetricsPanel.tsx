@@ -13,7 +13,7 @@ interface MetricsPanelProps {
 export const MetricsPanel: React.FC<MetricsPanelProps> = ({
   metrics,
   queryTokens,
-  title = 'RETRIEVAL METRICS'
+  title = 'SEARCH QUALITY METRICS'
 }) => {
   return (
     <aside className="metrics-panel">

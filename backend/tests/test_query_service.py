@@ -24,8 +24,8 @@ def patch_env(monkeypatch):
     import services.embedding_service as emb
     import vectorstore.pinecone as vp
 
-    # Replace embed with a simple deterministic function
-    monkeypatch.setattr(emb, "embed", lambda texts, batch_size=1: [[0.1] * 768 for _ in texts])
+    # Replace embed_query with a simple deterministic function
+    monkeypatch.setattr(emb, "embed_query", lambda text: [0.1] * 768)
 
     # Replace init_pinecone to return a fake client
     monkeypatch.setattr(vp, "init_pinecone", lambda api_key=None: FakeClient())

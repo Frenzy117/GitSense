@@ -8,7 +8,7 @@ interface VectorVisualizationProps {
 }
 
 export const VectorVisualization: React.FC<VectorVisualizationProps> = ({
-  dimensions = 1536,
+  dimensions = 768,
   gridSize = 64,
   activeCells,
   title = 'VECTOR SPACE'

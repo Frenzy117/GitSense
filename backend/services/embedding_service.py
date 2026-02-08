@@ -1,32 +1,72 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
-from google import genai
-import os
+from typing import List, Dict, Any, Optional, Callable
 import hashlib
 import logging
-from langchain_pinecone import PineconeEmbeddings, PineconeVectorStore
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_pinecone import PineconeVectorStore
 from langchain_core.documents import Document
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.embeddings import Embeddings
 
 logger = logging.getLogger(__name__)
 
+EMBEDDING_MODEL = "BAAI/bge-base-en-v1.5"
 
-def embed(model, texts: List[str], batch_size: int = 100) -> List[List[float]]:
-    """Return embeddings for a list of texts using GenAI.
+_QUERY_INSTRUCTION = "Represent this sentence for searching relevant passages: "
+_PASSAGE_INSTRUCTION = "Represent this sentence for retrieving relevant passages: "
+
+
+class BGEEmbeddings(Embeddings):
+
+    def __init__(self):
+        self._model = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={"normalize_embeddings": True},
+        )
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        prefixed = [_PASSAGE_INSTRUCTION + t for t in texts]
+        return self._model.embed_documents(prefixed)
+
+    def embed_query(self, text: str) -> List[float]:
+        prefixed = _QUERY_INSTRUCTION + text
+        return self._model.embed_query(prefixed)
+
+
+_embeddings: Optional[BGEEmbeddings] = None
+
+
+def _model() -> BGEEmbeddings:
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = BGEEmbeddings()
+    return _embeddings
+
+
+def embed(texts: List[str], batch_size: int = 100) -> List[List[float]]:
+    """Return embeddings for a list of texts using BAAI/bge-base-en-v1.5.
 
     Args:
-        texts: List of strings to embed.
-        batch_size: Number of texts to embed per request.
+        texts: List of strings to embed (passages/documents).
+        batch_size: Number of texts to embed per batch.
 
     Returns:
-        List of embedding vectors (list of floats) in the same order as inputs.
+        List of embedding vectors (768-dim each) in the same order as inputs.
     """
-
+    model = _model()
     embeddings: List[List[float]] = []
     for i in range(0, len(texts), batch_size):
         batch = texts[i : i + batch_size]
-        response = model.embed_documents(texts= batch)
-        embeddings.extend([e for e in response])
+        vectors = model.embed_documents(batch)
+        embeddings.extend(vectors)
     return embeddings
+
+
+def embed_query(text: str) -> List[float]:
+    """Return embedding for a single query string.
+
+    Uses the BGE query instruction prefix for better retrieval.
+    """
+    return _model().embed_query(text)
 
 
 def _make_id(doc):
@@ -46,32 +86,26 @@ def embed_and_upsert(
 
     Args:
         index: Pinecone Index object (e.g., result of client.Index(name)).
-        documents: List of dicts with 'text' and optional 'metadata'.
-        id_fn: Optional function to generate an id for each document. Defaults to a SHA1 of path+text.
+        documents: List of dicts with 'page_content' and optional 'metadata'.
+        id_fn: Optional function to generate an id for each document.
         batch_size: Number of documents to embed/upsert per batch.
     """
     if id_fn is None:
         id_fn = _make_id
 
-    model = OllamaEmbeddings(model="llama3")
+    model = _model()
     vectorstore = PineconeVectorStore(embedding=model, index=index)
 
     texts = [d.get("page_content", "") for d in documents]
     metadatas = [d.get("metadata", {}) for d in documents]
 
+    # BGEEmbeddings adds passage instruction automatically in embed_documents
     for i in range(0, len(texts), batch_size):
         batch_texts = texts[i : i + batch_size]
         batch_metas = metadatas[i : i + batch_size]
-        embeddings = embed(model, batch_texts, batch_size=batch_size)
-
-        vectors: List[Tuple[str, List[float], Dict[str, Any]]] = []
-        for j, emb in enumerate(embeddings):
-            doc = documents[i + j]
-            doc_id = id_fn(doc)
-            vectors.append((doc_id, emb, batch_metas[j]))
-        vectorstore.add_documents(
-            documents=[Document(page_content=text, metadata=meta) for text, meta in zip(batch_texts, batch_metas)]
-        )
-        logger.info("Upserted %d vectors (docs %d-%d)", len(vectors), i, i + len(vectors) - 1)
-
-      
+        batch_docs = [
+            Document(page_content=text, metadata=meta)
+            for text, meta in zip(batch_texts, batch_metas)
+        ]
+        vectorstore.add_documents(batch_docs)
+        logger.info("Upserted batch (docs %d-%d)", i, i + len(batch_docs) - 1)

@@ -55,7 +55,7 @@ def query_endpoint(req: QueryRequest):
 
     # 1) Embed the query text
     try:
-        emb = embedding_service.embed([req.query], batch_size=1)[0]
+        emb = embedding_service.embed_query(req.query)
     except Exception as exc:
         logger.exception("Embedding failed: %s", exc)
         raise HTTPException(status_code=500, detail="embedding failed")
@@ -99,7 +99,7 @@ def health():
 
     # Check embedding
     try:
-        _ = embedding_service.embed(["health check"], batch_size=1)
+        _ = embedding_service.embed_query("health check")
     except Exception as exc:
         ok = False
         messages.append(f"embed_error: {exc}")

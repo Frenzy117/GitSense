@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")
 INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "gitsense-index")
-VECTOR_DIM = int(os.getenv("VECTOR_DIM", "4096"))
+VECTOR_DIM = int(os.getenv("VECTOR_DIM", "768"))
 METRIC = os.getenv("PINECONE_METRIC", "cosine")
 
 def init_pinecone(api_key: str = None) -> Pinecone:

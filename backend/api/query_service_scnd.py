@@ -7,10 +7,9 @@ import uvicorn
 from langchain_community.document_loaders import GithubFileLoader
 import cohere
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_ollama import OllamaEmbeddings
-# from langchain_community.document_loaders.web.github im
 
-from services.embedding_service import embed
+
+from services.embedding_service import embed_query
 from vectorstore import pinecone as pc
 
 logger = logging.getLogger(__name__)
@@ -32,6 +31,12 @@ class QueryRequest(BaseModel):
     query: str
     top_k: Optional[int] = 5
     include_metadata: Optional[bool] = True
+
+class IndexStats(BaseModel):
+    vectorCount: int
+    dimension: int
+    metric: str
+    vectorType: str
 
 class QueryResult(BaseModel):
     id: str
@@ -55,15 +60,28 @@ def startup_event():
     INDEX = PC_CLIENT.Index(pc.INDEX_NAME)
     logger.info("Query service started and connected to Pinecone index: %s", pc.INDEX_NAME)
 
+@app.post("/stats", response_model=IndexStats)
+def get_index_stats():
+    try:
+        raw = INDEX.describe_index_stats()
+        return IndexStats(
+            vectorCount=int(raw.get("total_vector_count", "totalVectorCount")),
+            dimension=int(raw.get("dimension")),
+            metric=str(raw.get("metric")),
+            vectorType=str(raw.get("vector_type")),
+        )
+    except Exception as exception:
+        logger.exception("Failed to get index stats: %s", exception)
+        raise HTTPException(status_code=500, detail="Failed to get index stats.")
+
+
 @app.post("/query", response_model=QueryResponse)
 def query_endpoint(req: QueryRequest):
     if not req.query:
         raise HTTPException(status_code = 400, detail="Please provide a query string.")
     print(req.query)
     try:
-        model = OllamaEmbeddings(model="llama3")
-        query_embedding = model.embed_query(req.query)
-        # ([req.query])[0]
+        query_embedding = embed_query(req.query)
     except Exception as exception:
         logger.exception("Embedding failed: %s", exception)
         raise HTTPException(status_code = 500, detail = "embedding failed")
@@ -81,6 +99,7 @@ def query_endpoint(req: QueryRequest):
         document_matches = response.get("matches", [])
     else:
         document_matches = getattr(response, "matches", [])
+    
 
     for match in document_matches:
         importance = match.get("metadata").get("importance", 1.0)

@@ -25,6 +25,13 @@ export interface SearchResult {
   githubFileUrl?: string;
 }
 
+export interface StatsType {
+  vectorCount: number;
+  dimension: number;
+  metric: string;
+  vectorType: string;
+}
+
 export interface Metric {
   label: string;
   value: number;

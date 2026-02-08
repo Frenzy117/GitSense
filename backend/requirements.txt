@@ -1,0 +1,17 @@
+# Core
+fastapi
+uvicorn
+python-dotenv
+pydantic
+
+# Vector DB
+pinecone
+
+# LangChain
+langchain-core
+langchain-community
+langchain-pinecone
+langchain-text-splitters
+
+# Embeddings - BAAI/bge-base-en-v1.5
+sentence-transformers

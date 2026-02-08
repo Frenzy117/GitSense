@@ -33,12 +33,28 @@ if __name__ == "__main__":
     # else:
     #     logger.info("No manual chunked documents found to index")
 
-    repos = [{
-        "repo_id": "aws-samples/aws-mainframe-modernization-carddemo",
-        "repo": "aws-samples/aws-mainframe-modernization-carddemo",
-    }]
+    repos = [
+        # {
+        #     "repo": "aws-samples/aws-mainframe-modernization-carddemo",
+        #     "extensions": [".cbl", ".cpy", ".jcl", ".bms", ".dcl", ".txt", ".md"],
+        # },
+        # {
+        #     "repo": "vercel/next.js",
+        #     "extensions": [".ts", ".tsx", ".js", ".jsx", ".md", ".css"],
+        # },
+        {
+            "repo": "sveltejs/svelte.dev",
+            "extensions": [".svelte", ".ts", ".tsx", ".js", ".jsx",".css", ".html"],
+        },
+        {
+            "repo": "chakra-ui/chakra-ui",
+            "extensions": [".ts", ".tsx", ".js", ".jsx", ".mdx"],
+        },
+    ]
 
-    ingest.load_and_chunk(repos[0], pc, INDEX_NAME)
+    for repo_config in repos:
+        logger.info("Ingesting repo: %s", repo_config["repo"])
+        ingest.load_and_chunk(repo_config, pc, INDEX_NAME)
     logger.info("Finished indexing run")
 
 

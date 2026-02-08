@@ -71,9 +71,16 @@ def process_file(files: list[Path]):
         )
     return raw_documents
 
-def load_and_chunk(repo_config: Dict, client, index_name, extensions: list[str] = EXTENSIONS):
+def load_and_chunk(repo_config: Dict, client, index_name) -> None:
+    """Load documents from a GitHub repo, chunk, and index into Pinecone.
+
+    Repo config must have "repo" (GitHub owner/repo). Optional "extensions" overrides
+    the default file type filter; e.g. [".ts", ".tsx", ".md"] for a TypeScript project.
+    """
+    repo = repo_config.get("repo")
+    extensions = repo_config.get("extensions", EXTENSIONS)
     loader = GithubFileLoader(
-        repo=repo_config.get("repo"),
+        repo=repo,
         access_token=os.getenv("GITHUB_TOKEN"),
         file_filter=lambda file_path: any(file_path.endswith(ext) for ext in extensions) and not should_skip(file_path),
     )
@@ -91,7 +98,7 @@ def load_and_chunk(repo_config: Dict, client, index_name, extensions: list[str] 
     if docs:
         # Convert to expected shape for indexing
         for d in docs:
-            d.metadata["repo_id"] = repo_config.get("repo_id")
+            d.metadata["repo_id"] = repo
             path = d.metadata.get("path", "").lower()
             d.metadata["end_index"] = d.metadata.get("start_index",0) + len(d.page_content)
 

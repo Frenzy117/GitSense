@@ -152,6 +152,7 @@
 .search-wrapper {
   position: relative;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 1.5rem;
   background: transparent;
@@ -215,6 +216,25 @@
   color: #ffffff;
   flex-shrink: 0;
   transition: color 0.3s ease;
+  padding: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.submit {
+  background: transparent;
+  border: none;
+  color: #000000;
+}
+
+.submit:hover .search-icon-wrapper {
+  cursor: pointer;
+  color: #000000;
+  background: #ffffff;
+  border-radius: 50%;
 }
 
 .search-input {
@@ -292,7 +312,7 @@
 .search-history-item {
   width: 100%;
   padding: 0.75rem 1.25rem;
-  background: transparent;
+  /* background: transparent; */
   border: none;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
@@ -303,7 +323,7 @@
 }
 
 .search-history-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255);
 }
 
 /* Filters */

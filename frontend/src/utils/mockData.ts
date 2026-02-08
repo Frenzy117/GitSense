@@ -1,10 +1,9 @@
 import { Repository, SearchResult, Metric, FilterOption, HeaderStat } from '../types';
 
 export const mockRepositories: Repository[] = [
-  { name: 'backend-api', files: '3.2K', updated: '2h', language: 'TypeScript', vectors: 8234 },
-  { name: 'frontend-app', files: '1.8K', updated: '5h', language: 'React', vectors: 4521 },
-  { name: 'ml-models', files: '892', updated: '1d', language: 'Python', vectors: 2891 },
-  { name: 'docs-site', files: '234', updated: '3d', language: 'MDX', vectors: 1247 }
+  { name: 'aws-samples/aws-mainframe-modernization-carddemo', files: '235', updated: '1D', language: 'COBOL', vectors: 7355 },
+  { name: 'sveltejs/svelte.dev', files: '462', updated: '5h', language: 'Svelte', vectors: 4521 },
+  { name: 'chakra-ui/chakra-ui', files: '364', updated: '3h', language: 'Typescript', vectors: 18163 },
 ];
 
 export const mockSearchResults: SearchResult[] = [
